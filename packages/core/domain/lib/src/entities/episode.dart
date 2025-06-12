@@ -8,11 +8,11 @@ class Episode extends Equatable {
   final DateTime? createdAt;
 
   const Episode({
-    required this.id,
+    this.id = '',
     required this.title,
     required this.description,
     required this.host,
-    required this.createdAt,
+    this.createdAt,
   });
 
   @override
