@@ -1,6 +1,6 @@
+import 'package:core_data/src/models/episode_dto.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import '../models/episode_dto.dart';
 
 part 'podcast_api_service.g.dart';
 
@@ -15,5 +15,8 @@ abstract class PodcastApiService {
   Future<EpisodeDto> createEpisode(@Body() EpisodeDto episode);
 
   @PATCH('/episodes/{id}')
-  Future<EpisodeDto> updateEpisode(@Path('id') String id, @Body() EpisodeDto episode);
+  Future<EpisodeDto> updateEpisode(
+    @Path('id') String id,
+    @Body() EpisodeDto episode,
+  );
 }
