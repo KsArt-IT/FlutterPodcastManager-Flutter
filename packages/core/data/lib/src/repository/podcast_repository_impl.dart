@@ -43,6 +43,34 @@ class PodcastRepositoryImpl implements PodcastRepository {
   }
 
   @override
+  Future<Result<Episode>> fetchEpisode(String id) async {
+    try {
+      final EpisodeDto dto = await _apiService.fetchEpisode(id);
+      return Result.success(dto.toDomain());
+    } on DioException catch (e) {
+      _logger.e(
+        'PodcastRepositoryImpl::fetchEpisodes: Failed to get episodes: $e',
+      );
+      if (e.response != null) {
+        return Result.failure(
+          ServerFailure(
+            message: e.response!.data.toString(),
+            code: e.response!.statusCode,
+          ),
+        );
+      }
+      return Result.failure(
+        NetworkFailure(message: e.message ?? 'Unknown network error'),
+      );
+    } catch (e) {
+      _logger.e(
+        'PodcastRepositoryImpl::fetchEpisodes: An unexpected error occurred: $e',
+      );
+      return Result.failure(UnknownFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Result<Episode>> createEpisode(Episode episode) async {
     try {
       final EpisodeDto responseDto = await _apiService.createEpisode(

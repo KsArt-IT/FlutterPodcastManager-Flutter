@@ -10,7 +10,7 @@ part of 'podcast_api_service.dart';
 
 class _PodcastApiService implements PodcastApiService {
   _PodcastApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://684806bfec44b9f3493f5752.mockapi.io/api/v1/';
+    baseUrl ??= 'https://684806bfec44b9f3493f5752.mockapi.io/api/v1';
   }
 
   final Dio _dio;
@@ -41,6 +41,33 @@ class _PodcastApiService implements PodcastApiService {
       _value = _result.data!
           .map((dynamic i) => EpisodeDto.fromJson(i as Map<String, dynamic>))
           .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<EpisodeDto> fetchEpisode(String id) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<EpisodeDto>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/episodes/${id}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late EpisodeDto _value;
+    try {
+      _value = EpisodeDto.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -84,7 +111,7 @@ class _PodcastApiService implements PodcastApiService {
     final _data = <String, dynamic>{};
     _data.addAll(episode.toJson());
     final _options = _setStreamType<EpisodeDto>(
-      Options(method: 'PATCH', headers: _headers, extra: _extra)
+      Options(method: 'PUT', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
             '/episodes/${id}',
