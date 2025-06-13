@@ -1,3 +1,4 @@
+import 'package:core_domain/domain.dart';
 import 'package:feature_episodes/episodes.dart';
 import 'package:feature_episodes/src/ui/episodes/widgets/episodes_list.dart';
 import 'package:feature_episodes/src/ui/episodes/widgets/episodes_retry.dart';
@@ -29,8 +30,21 @@ class _EpisodesBody extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         key: const Key('episodes_add_floatingActionButton'),
-        onPressed: () {
-          context.pushNamed('new');
+        onPressed: () async {
+          final episode = await context.pushNamed('new');
+          if (context.mounted && episode != null && episode is Episode) {
+            context.read<EpisodesBloc>().add(
+              CreatedEpisodeEvent(episode),
+            );
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text('Episode created: ${episode.title}'),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+          }
         },
         child: const Icon(Icons.add),
       ),
