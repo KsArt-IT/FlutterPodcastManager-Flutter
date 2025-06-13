@@ -17,4 +17,31 @@ final class EditEpisodeEvent extends EpisodeEditEvent {
   List<Object?> get props => [episodeId];
 }
 
+final class ChangeTitleEpisodeEvent extends EpisodeEditEvent {
+  final String value;
+
+  const ChangeTitleEpisodeEvent(this.value);
+
+  @override
+  List<Object?> get props => [value];
+}
+
+final class ChangeDescriptionEpisodeEvent extends EpisodeEditEvent {
+  final String value;
+
+  const ChangeDescriptionEpisodeEvent(this.value);
+
+  @override
+  List<Object?> get props => [value];
+}
+
+final class ChangeHostEpisodeEvent extends EpisodeEditEvent {
+  final String value;
+
+  const ChangeHostEpisodeEvent(this.value);
+
+  @override
+  List<Object?> get props => [value];
+}
+
 final class SaveEpisodeEvent extends EpisodeEditEvent {}

@@ -23,7 +23,7 @@ final class EpisodeEditState extends Equatable {
     this.title = '',
     this.description = '',
     this.host = '',
-    
+
     this.error = '',
   });
 
@@ -38,18 +38,14 @@ final class EpisodeEditState extends Equatable {
 
     String? error,
   }) {
+    final errorStr = _isValidTitle(title) ?? _isValidDescription(description) ?? _isValidHost(host) ?? '';
     return EpisodeEditState(
-      status: status ?? StateStatus.valid,
+      status: status ?? (errorStr.isEmpty ? StateStatus.valid : StateStatus.error),
       episode: episode ?? this.episode,
       title: title ?? this.title,
       description: description ?? this.description,
       host: host ?? this.host,
-      error:
-          error ??
-          _isValidTitle(title) ??
-          _isValidDescription(description) ??
-          _isValidHost(host) ??
-          '',
+      error: error ?? errorStr,
     );
   }
 

@@ -20,7 +20,31 @@ class EpisodeEditBloc extends Bloc<EpisodeEditEvent, EpisodeEditState> {
        super(const EpisodeEditState()) {
     on<CreateEpisodeEvent>(_onCreateEpisodeEvent);
     on<EditEpisodeEvent>(_onEditEpisodeEvent);
+    on<ChangeTitleEpisodeEvent>(_onChangeTitleEpisodeEvent);
+    on<ChangeDescriptionEpisodeEvent>(_onChangeDescriptionEpisodeEvent);
+    on<ChangeHostEpisodeEvent>(_onChangeHostEpisodeEvent);
     on<SaveEpisodeEvent>(_onSaveEpisodeEvent);
+  }
+
+  void _onChangeTitleEpisodeEvent(
+    ChangeTitleEpisodeEvent event,
+    Emitter<EpisodeEditState> emit,
+  ) {
+    emit(state.copyWith(title: event.value));
+  }
+
+  void _onChangeDescriptionEpisodeEvent(
+    ChangeDescriptionEpisodeEvent event,
+    Emitter<EpisodeEditState> emit,
+  ) {
+    emit(state.copyWith(description: event.value));
+  }
+
+  void _onChangeHostEpisodeEvent(
+    ChangeHostEpisodeEvent event,
+    Emitter<EpisodeEditState> emit,
+  ) {
+    emit(state.copyWith(host: event.value));
   }
 
   void _onCreateEpisodeEvent(
