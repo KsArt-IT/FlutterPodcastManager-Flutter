@@ -7,3 +7,19 @@ sealed class EpisodesEvent extends Equatable {
 }
 
 final class FetchEpisodesEvent extends EpisodesEvent {}
+
+final class RefreshEpisodesEvent extends EpisodesEvent {
+  final Completer completer;
+  const RefreshEpisodesEvent(this.completer);
+
+  @override
+  List<Object?> get props => [completer];
+}
+
+final class CreatedEpisodeEvent extends EpisodesEvent {
+  final Episode episode;
+  const CreatedEpisodeEvent(this.episode);
+
+  @override
+  List<Object?> get props => [episode];
+}
