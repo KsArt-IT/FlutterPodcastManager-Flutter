@@ -11,11 +11,13 @@ class EpisodesRoutes {
     routes: <RouteBase>[
       GoRoute(
         path: 'new',
+        name: 'new',
         builder: (context, state) => const EpisodeEditScreen(),
         //
       ),
       GoRoute(
         path: 'edit/:episodeId',
+        name: 'edit',
         builder: (context, state) =>
             EpisodeEditScreen(id: state.pathParameters['episodeId']),
         //
