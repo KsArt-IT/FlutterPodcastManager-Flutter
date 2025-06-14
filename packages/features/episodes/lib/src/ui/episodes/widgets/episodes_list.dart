@@ -1,35 +1,44 @@
 import 'dart:async';
 
 import 'package:core_domain/domain.dart';
-import 'package:feature_episodes/episodes.dart';
+import 'package:feature_episodes/src/ui/episodes/widgets/dismissible_list_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EpisodesList extends StatelessWidget {
   final List<Episode> list;
+  final Function(Completer) onRefresh;
+  final Function(String) onEdit;
+  final Function(String) onDelete;
+  final Function(String) onTap;
 
-  const EpisodesList({super.key, required this.list});
+  const EpisodesList({
+    super.key,
+    required this.list,
+    required this.onRefresh,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () {
         final completer = Completer<void>();
-        context.read<EpisodesBloc>().add(RefreshEpisodesEvent(completer));
+        onRefresh(completer);
         return completer.future;
       },
       child: ListView.builder(
         itemCount: list.length,
         itemBuilder: (context, index) {
           final item = list[index];
-          return ListTile(
-            key: item.id.isNotEmpty ? ValueKey(item.id) : null,
-            title: Text(item.title),
-            subtitle: Text(item.description),
-            onTap: () {
-              // TODO: open host
-              item.host;
-            },
+          return DismissibleListTile(
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            onEdit: () => onEdit(item.id),
+            onDelete: () => onDelete(item.id),
+            onTap: () => onTap(item.id),
           );
         },
       ),
