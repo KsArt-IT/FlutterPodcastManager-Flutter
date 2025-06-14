@@ -14,137 +14,77 @@ class PodcastRepositoryImpl implements PodcastRepository {
     : _apiService = service;
 
   @override
-  Future<Result<List<Episode>>> fetchEpisodes() async {
-    try {
-      final List<EpisodeDto> dtos = await _apiService.fetchEpisodes();
-      final List<Episode> episodes = dtos.map((dto) => dto.toDomain()).toList();
-      return Result.success(episodes);
-    } on DioException catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::fetchEpisodes: Failed to get episodes: $e',
-      );
-      if (e.response != null) {
-        return Result.failure(
-          ServerFailure(
-            message: e.response!.data.toString(),
-            code: e.response!.statusCode,
-          ),
-        );
-      }
-      return Result.failure(
-        NetworkFailure(message: e.message ?? 'Unknown network error'),
-      );
-    } catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::fetchEpisodes: An unexpected error occurred: $e',
-      );
-      return Result.failure(UnknownFailure(message: e.toString()));
-    }
+  Future<Result<List<Episode>>> fetchEpisodes() {
+    return _fetchData<List<EpisodeDto>, List<Episode>>(
+      () => _apiService.fetchEpisodes(),
+      mapper: (dtos) => dtos.map((e) => e.toDomain()).toList(),
+      context: 'PodcastRepositoryImpl::fetchEpisodes',
+    );
   }
 
   @override
-  Future<Result<Episode>> fetchEpisode(String id) async {
-    try {
-      final EpisodeDto dto = await _apiService.fetchEpisode(id);
-      return Result.success(dto.toDomain());
-    } on DioException catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::fetchEpisodes: Failed to get episodes: $e',
-      );
-      if (e.response != null) {
-        return Result.failure(
-          ServerFailure(
-            message: e.response!.data.toString(),
-            code: e.response!.statusCode,
-          ),
-        );
-      }
-      return Result.failure(
-        NetworkFailure(message: e.message ?? 'Unknown network error'),
-      );
-    } catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::fetchEpisodes: An unexpected error occurred: $e',
-      );
-      return Result.failure(UnknownFailure(message: e.toString()));
-    }
+  Future<Result<Episode>> fetchEpisode(String id) {
+    return _fetchData<EpisodeDto, Episode>(
+      () => _apiService.fetchEpisode(id),
+      mapper: (dto) => dto.toDomain(),
+      context: 'PodcastRepositoryImpl::fetchEpisode',
+    );
   }
 
   @override
-  Future<Result<Episode>> createEpisode(Episode episode) async {
-    try {
-      final EpisodeDto responseDto = await _apiService.createEpisode(
-        episode.toDto(),
-      );
-      return Result.success(responseDto.toDomain());
-    } on DioException catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::createEpisode: Failed to create episode: $e',
-      );
-      if (e.response != null) {
-        return Result.failure(
-          ServerFailure(
-            message: e.response!.data.toString(),
-            code: e.response!.statusCode,
-          ),
-        );
-      }
-      return Result.failure(
-        NetworkFailure(message: e.message ?? 'Unknown network error'),
-      );
-    } catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::createEpisode: An unexpected error occurred: $e',
-      );
-      return Result.failure(UnknownFailure(message: e.toString()));
-    }
+  Future<Result<Episode>> createEpisode(Episode episode) {
+    return _fetchData<EpisodeDto, Episode>(
+      () => _apiService.createEpisode(episode.toDto()),
+      mapper: (dto) => dto.toDomain(),
+      context: 'PodcastRepositoryImpl::createEpisode',
+    );
   }
 
   @override
-  Future<Result<Episode>> updateEpisode(Episode episode) async {
-    try {
-      if (episode.id.isEmpty) {
-        return Result.failure(
+  Future<Result<Episode>> updateEpisode(Episode episode) {
+    if (episode.id.isEmpty) {
+      return Future.value(
+        Result.failure(
           ValidationFailure(message: 'Episode ID cannot be empty for update.'),
-        );
-      }
-      final EpisodeDto responseDto = await _apiService.updateEpisode(
-        episode.id,
-        episode.toDto(),
+        ),
       );
-      return Result.success(responseDto.toDomain());
-    } on DioException catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::updateEpisode: Failed to update episode: $e',
-      );
-      if (e.response != null) {
-        return Result.failure(
-          ServerFailure(
-            message: e.response!.data.toString(),
-            code: e.response!.statusCode,
-          ),
-        );
-      }
-      return Result.failure(
-        NetworkFailure(message: e.message ?? 'Unknown network error'),
-      );
-    } catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::updateEpisode: An unexpected error occurred: $e',
-      );
-      return Result.failure(UnknownFailure(message: e.toString()));
     }
+
+    return _fetchData<EpisodeDto, Episode>(
+      () => _apiService.updateEpisode(episode.id, episode.toDto()),
+      mapper: (dto) => dto.toDomain(),
+      context: 'PodcastRepositoryImpl::updateEpisode',
+    );
   }
 
   @override
-  Future<Result<bool>> deleteEpisode(String id) async {
-    try {
+  Future<Result<bool>> deleteEpisode(String id) {
+    return _executeRequest<bool>(() async {
       await _apiService.deleteEpisode(id);
-      return Result.success(true);
+      return true;
+    }, context: 'PodcastRepositoryImpl::deleteEpisode');
+  }
+
+  Future<Result<R>> _fetchData<T, R>(
+    Future<T> Function() call, {
+    required R Function(T dto) mapper,
+    required String context,
+  }) async {
+    return _executeRequest<R>(
+      () async => mapper(await call()),
+      context: context,
+    );
+  }
+
+  Future<Result<T>> _executeRequest<T>(
+    Future<T> Function() call, {
+    required String context,
+  }) async {
+    try {
+      final result = await call();
+      return Result.success(result);
     } on DioException catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::deleteEpisode: Failed to update episode: $e',
-      );
+      _logger.e('$context: Dio error: $e');
       if (e.response != null) {
         return Result.failure(
           ServerFailure(
@@ -157,9 +97,7 @@ class PodcastRepositoryImpl implements PodcastRepository {
         NetworkFailure(message: e.message ?? 'Unknown network error'),
       );
     } catch (e) {
-      _logger.e(
-        'PodcastRepositoryImpl::deleteEpisode: An unexpected error occurred: $e',
-      );
+      _logger.e('$context: Unexpected error: $e');
       return Result.failure(UnknownFailure(message: e.toString()));
     }
   }
