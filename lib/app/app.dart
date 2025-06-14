@@ -29,6 +29,9 @@ class App extends StatelessWidget {
         RepositoryProvider<UpdateEpisodeUseCase>(
           create: (context) => UpdateEpisodeUseCase(context.read()),
         ),
+        RepositoryProvider<DeleteEpisodeUseCase>(
+          create: (context) => DeleteEpisodeUseCase(context.read()),
+        ),
       ],
       child: PodcastManagerApp(),
     );
