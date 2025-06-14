@@ -23,3 +23,11 @@ final class CreatedEpisodeEvent extends EpisodesEvent {
   @override
   List<Object?> get props => [episode];
 }
+
+final class DeleteEpisodeEvent extends EpisodesEvent {
+  final String episodeId;
+  const DeleteEpisodeEvent(this.episodeId);
+
+  @override
+  List<Object?> get props => [episodeId];
+}

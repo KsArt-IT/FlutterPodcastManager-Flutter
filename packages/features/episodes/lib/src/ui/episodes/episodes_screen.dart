@@ -13,9 +13,10 @@ class EpisodesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          EpisodesBloc(fetchEpisodes: context.read())
-            ..add(FetchEpisodesEvent()),
+      create: (context) => EpisodesBloc(
+        fetchEpisodes: context.read(),
+        deleteEpisode: context.read(),
+      )..add(FetchEpisodesEvent()),
       child: _EpisodesBody(),
     );
   }
