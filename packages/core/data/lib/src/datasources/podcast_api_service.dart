@@ -12,9 +12,7 @@ abstract class PodcastApiService {
   Future<List<EpisodeDto>> fetchEpisodes();
 
   @GET('/episodes/{id}')
-  Future<EpisodeDto> fetchEpisode(
-    @Path('id') String id,
-  );
+  Future<EpisodeDto> fetchEpisode(@Path('id') String id);
 
   @POST('/episodes')
   Future<EpisodeDto> createEpisode(@Body() EpisodeDto episode);
@@ -24,4 +22,7 @@ abstract class PodcastApiService {
     @Path('id') String id,
     @Body() EpisodeDto episode,
   );
+
+  @DELETE('/episodes/{id}')
+  Future<EpisodeDto> deleteEpisode(@Path('id') String id);
 }

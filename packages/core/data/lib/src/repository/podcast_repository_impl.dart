@@ -135,4 +135,32 @@ class PodcastRepositoryImpl implements PodcastRepository {
       return Result.failure(UnknownFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Result<bool>> deleteEpisode(String id) async {
+    try {
+      await _apiService.deleteEpisode(id);
+      return Result.success(true);
+    } on DioException catch (e) {
+      _logger.e(
+        'PodcastRepositoryImpl::deleteEpisode: Failed to update episode: $e',
+      );
+      if (e.response != null) {
+        return Result.failure(
+          ServerFailure(
+            message: e.response!.data.toString(),
+            code: e.response!.statusCode,
+          ),
+        );
+      }
+      return Result.failure(
+        NetworkFailure(message: e.message ?? 'Unknown network error'),
+      );
+    } catch (e) {
+      _logger.e(
+        'PodcastRepositoryImpl::deleteEpisode: An unexpected error occurred: $e',
+      );
+      return Result.failure(UnknownFailure(message: e.toString()));
+    }
+  }
 }
