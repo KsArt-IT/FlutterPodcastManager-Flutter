@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:core_domain/domain.dart';
 import 'package:equatable/equatable.dart';
@@ -70,10 +69,10 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
     Emitter<EpisodesState> emit,
   ) async {
     if (state is EpisodesLoadedState) {
-      List<Episode> list = (state as EpisodesLoadedState).episodes;
+      List<Episode> list = List.from((state as EpisodesLoadedState).episodes);
       final index = list.indexWhere((e) => e.id == event.episode.id);
       list[index] = event.episode;
-      emit(EpisodesLoadedState(UnmodifiableListView(list)));
+      emit(EpisodesLoadedState(list));
     }
   }
 
@@ -86,10 +85,12 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
       final result = await _deleteEpisodeUseCase(event.episodeId);
       switch (result) {
         case Success():
-          EpisodesLoadedState(
-            (state as EpisodesLoadedState).episodes
-                .skipWhile((e) => e.id == event.episodeId)
-                .toList(),
+          emit(
+            EpisodesLoadedState(
+              (state as EpisodesLoadedState).episodes
+                  .where((e) => e.id != event.episodeId)
+                  .toList(),
+            ),
           );
         case Failure(:final error):
           emit(EpisodesErrorState(error.toString()));
