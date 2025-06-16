@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:core_domain/domain.dart';
 import 'package:equatable/equatable.dart';
@@ -20,6 +21,7 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
     on<FetchEpisodesEvent>(_onFetchEpisodesEvent);
     on<RefreshEpisodesEvent>(_onRefreshEpisodesEvent);
     on<CreatedEpisodeEvent>(_onCreatedEpisodeEvent);
+    on<UpdatedEpisodeEvent>(_onUpdatedEpisodeEvent);
     on<DeleteEpisodeEvent>(_onDeleteEpisodeEvent);
   }
 
@@ -60,6 +62,18 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
           (state as EpisodesLoadedState).episodes + [event.episode],
         ),
       );
+    }
+  }
+
+  void _onUpdatedEpisodeEvent(
+    UpdatedEpisodeEvent event,
+    Emitter<EpisodesState> emit,
+  ) async {
+    if (state is EpisodesLoadedState) {
+      List<Episode> list = (state as EpisodesLoadedState).episodes;
+      final index = list.indexWhere((e) => e.id == event.episode.id);
+      list[index] = event.episode;
+      emit(EpisodesLoadedState(UnmodifiableListView(list)));
     }
   }
 
