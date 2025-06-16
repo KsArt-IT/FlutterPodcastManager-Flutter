@@ -118,10 +118,10 @@ class _EpisodeEditBody extends StatelessWidget {
                   }
                 },
                 buildWhen: (previous, current) =>
-                    previous.isValid != current.isValid,
+                    previous.status != current.status,
                 builder: (context, state) {
                   return ElevatedButton(
-                    onPressed: state.isValid
+                    onPressed: state.status == StateStatus.valid
                         ? () {
                             context.read<EpisodeEditBloc>().add(
                               SaveEpisodeEvent(),
