@@ -14,16 +14,22 @@ class EpisodeEditBloc extends Bloc<EpisodeEditEvent, EpisodeEditState> {
     required FetchEpisodeUseCase fetchEpisode,
     required CreateEpisodeUseCase createEpisode,
     required UpdateEpisodeUseCase updateEpisodes,
+    String? id,
   }) : _fetchEpisodeUseCase = fetchEpisode,
        _createEpisodeUseCase = createEpisode,
        _updateEpisodeUseCase = updateEpisodes,
-       super(const EpisodeEditState()) {
-    on<CreateEpisodeEvent>(_onCreateEpisodeEvent);
+       super(
+         EpisodeEditState(
+           status: id != null ? StateStatus.loading : StateStatus.initial,
+         ),
+       ) {
     on<EditEpisodeEvent>(_onEditEpisodeEvent);
     on<ChangeTitleEpisodeEvent>(_onChangeTitleEpisodeEvent);
     on<ChangeDescriptionEpisodeEvent>(_onChangeDescriptionEpisodeEvent);
     on<ChangeHostEpisodeEvent>(_onChangeHostEpisodeEvent);
     on<SaveEpisodeEvent>(_onSaveEpisodeEvent);
+
+    if (id != null) add(EditEpisodeEvent(id));
   }
 
   void _onChangeTitleEpisodeEvent(
@@ -45,13 +51,6 @@ class EpisodeEditBloc extends Bloc<EpisodeEditEvent, EpisodeEditState> {
     Emitter<EpisodeEditState> emit,
   ) {
     emit(state.copyWith(host: event.value));
-  }
-
-  void _onCreateEpisodeEvent(
-    CreateEpisodeEvent event,
-    Emitter<EpisodeEditState> emit,
-  ) {
-    emit(state.copyWith(status: StateStatus.initial));
   }
 
   void _onEditEpisodeEvent(
@@ -84,20 +83,8 @@ class EpisodeEditBloc extends Bloc<EpisodeEditEvent, EpisodeEditState> {
     if (!state.isValid) return;
     emit(state.copyWith(status: StateStatus.initial));
     final result = state.episode != null
-        ? await _updateEpisodeUseCase(
-            state.episode!.copyWith(
-              title: state.title,
-              description: state.description,
-              host: state.host,
-            ),
-          )
-        : await _createEpisodeUseCase(
-            Episode(
-              title: state.title,
-              description: state.description,
-              host: state.host,
-            ),
-          );
+        ? await _updateEpisode()
+        : await _createEpisode();
     switch (result) {
       case Success(:final value):
         emit(state.copyWith(status: StateStatus.success, episode: value));
@@ -106,5 +93,25 @@ class EpisodeEditBloc extends Bloc<EpisodeEditEvent, EpisodeEditState> {
           state.copyWith(status: StateStatus.error, error: error.toString()),
         );
     }
+  }
+
+  Future<Result<Episode>> _updateEpisode() {
+    return _updateEpisodeUseCase(
+      state.episode!.copyWith(
+        title: state.title,
+        description: state.description,
+        host: state.host,
+      ),
+    );
+  }
+
+  Future<Result<Episode>> _createEpisode() {
+    return _createEpisodeUseCase(
+      Episode(
+        title: state.title,
+        description: state.description,
+        host: state.host,
+      ),
+    );
   }
 }
