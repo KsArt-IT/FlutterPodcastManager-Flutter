@@ -6,8 +6,6 @@ sealed class EpisodeEditEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-final class CreateEpisodeEvent extends EpisodeEditEvent {}
-
 final class EditEpisodeEvent extends EpisodeEditEvent {
   final String episodeId;
 
