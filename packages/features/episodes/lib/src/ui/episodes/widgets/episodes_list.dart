@@ -29,6 +29,7 @@ class EpisodesList extends StatelessWidget {
         return completer.future;
       },
       child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 100),
         itemCount: list.length,
         itemBuilder: (context, index) {
           final item = list[index];
