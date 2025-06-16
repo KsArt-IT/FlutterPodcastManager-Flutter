@@ -17,7 +17,7 @@ final class EpisodeEditState extends Equatable {
       (_isValidTitle() ?? _isValidDescription() ?? _isValidHost()) == null;
 
   const EpisodeEditState({
-    this.status = StateStatus.loading,
+    this.status = StateStatus.initial,
     this.episode,
 
     this.title = '',
@@ -38,9 +38,14 @@ final class EpisodeEditState extends Equatable {
 
     String? error,
   }) {
-    final errorStr = _isValidTitle(title) ?? _isValidDescription(description) ?? _isValidHost(host) ?? '';
+    final errorStr =
+        _isValidTitle(title) ??
+        _isValidDescription(description) ??
+        _isValidHost(host) ??
+        '';
     return EpisodeEditState(
-      status: status ?? (errorStr.isEmpty ? StateStatus.valid : StateStatus.error),
+      status:
+          status ?? (errorStr.isEmpty ? StateStatus.valid : StateStatus.error),
       episode: episode ?? this.episode,
       title: title ?? this.title,
       description: description ?? this.description,
