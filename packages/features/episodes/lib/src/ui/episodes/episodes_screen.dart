@@ -34,16 +34,8 @@ class _EpisodesBody extends StatelessWidget {
         key: const Key('episodes_add_floatingActionButton'),
         onPressed: () async {
           final episode = await context.pushNamed('new');
-          if (context.mounted && episode != null && episode is Episode) {
-            context.read<EpisodesBloc>().add(CreatedEpisodeEvent(episode));
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text('Episode created: ${episode.title}'),
-                  duration: const Duration(seconds: 3),
-                ),
-              );
+          if (context.mounted) {
+            _updateAndShowSnackBar(context, episode, true);
           }
         },
         child: const Icon(Icons.add),
@@ -54,13 +46,19 @@ class _EpisodesBody extends StatelessWidget {
             list: episodes,
             onRefresh: (value) =>
                 context.read<EpisodesBloc>().add(RefreshEpisodesEvent(value)),
-            onEdit: (value) =>
-                context.pushNamed('edit', pathParameters: {'episodeId': value}),
+            onEdit: (value) async {
+              final episode = await context.pushNamed(
+                'edit',
+                pathParameters: {'episodeId': value},
+              );
+              if (context.mounted) _updateAndShowSnackBar(context, episode);
+            },
             onDelete: (value) =>
                 context.read<EpisodesBloc>().add(DeleteEpisodeEvent(value)),
             onTap: (value) {
               // TODO: open host value
               Clipboard.setData(ClipboardData(text: value));
+              _showSnackBar(context, 'Host copy to Clipboard!');
             },
           ),
           EpisodesErrorState(:final message) => EpisodesRetry(message: message),
@@ -68,5 +66,29 @@ class _EpisodesBody extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _updateAndShowSnackBar(
+    BuildContext context,
+    Object? episode, [
+    bool isCreated = false,
+  ]) {
+    if (episode != null && episode is Episode) {
+      context.read<EpisodesBloc>().add(
+        isCreated ? CreatedEpisodeEvent(episode) : UpdatedEpisodeEvent(episode),
+      );
+      _showSnackBar(
+        context,
+        "Episode ${isCreated ? 'created' : 'updated'}: '${episode.title}'",
+      );
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
+      );
   }
 }
