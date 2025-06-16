@@ -15,40 +15,40 @@ class EpisodeEditScreen extends StatelessWidget {
         fetchEpisode: context.read(),
         createEpisode: context.read(),
         updateEpisodes: context.read(),
-      )..add(id != null ? EditEpisodeEvent(id!) : CreateEpisodeEvent()),
-      child: _EpisodeEditBody(),
+        id: id,
+      ),
+      child: _EpisodeEditBody(id: id),
     );
   }
 }
 
 class _EpisodeEditBody extends StatelessWidget {
-  const _EpisodeEditBody({super.key});
+  final bool isEdit;
+
+  const _EpisodeEditBody({super.key, required String? id})
+    : isEdit = id != null;
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<EpisodeEditBloc, EpisodeEditState>(
-      listener: (context, state) {
-        if (state.status == StateStatus.success) {
-          context.pop(state.episode);
-        }
-      },
-      builder: (context, state) {
-        final isEdit = state.episode != null;
-        final bloc = context.read<EpisodeEditBloc>();
-        return Scaffold(
-          appBar: AppBar(title: Text(isEdit ? 'Edit' : 'Create')),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextFormFieldValid(
+    return Scaffold(
+      appBar: AppBar(title: Text(isEdit ? 'Edit' : 'Create')),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BlocBuilder<EpisodeEditBloc, EpisodeEditState>(
+                          buildWhen: (previous, current) =>
+                              previous.title != current.title,
+                          builder: (context, state) {
+                            return TextFormFieldValid(
+                              value: state.title,
                               hint: 'Title',
                               autocorrect: true,
                               onCheckText: (value) {
@@ -57,12 +57,18 @@ class _EpisodeEditBody extends StatelessWidget {
                                     ? state.error
                                     : null;
                               },
-                              onChanged: (value) {
-                                bloc.add(ChangeTitleEpisodeEvent(value));
-                              },
-                            ),
-                            // SizedBox(height: 16),
-                            TextFormFieldValid(
+                              onChanged: (value) => context
+                                  .read<EpisodeEditBloc>()
+                                  .add(ChangeTitleEpisodeEvent(value)),
+                            );
+                          },
+                        ),
+                        BlocBuilder<EpisodeEditBloc, EpisodeEditState>(
+                          buildWhen: (previous, current) =>
+                              previous.description != current.description,
+                          builder: (context, state) {
+                            return TextFormFieldValid(
+                              value: state.description,
                               hint: 'Description',
                               autocorrect: true,
                               onCheckText: (value) {
@@ -71,12 +77,18 @@ class _EpisodeEditBody extends StatelessWidget {
                                     ? state.error
                                     : null;
                               },
-                              onChanged: (value) {
-                                bloc.add(ChangeDescriptionEpisodeEvent(value));
-                              },
-                            ),
-                            // SizedBox(height: 16),
-                            TextFormFieldValid(
+                              onChanged: (value) => context
+                                  .read<EpisodeEditBloc>()
+                                  .add(ChangeDescriptionEpisodeEvent(value)),
+                            );
+                          },
+                        ),
+                        BlocBuilder<EpisodeEditBloc, EpisodeEditState>(
+                          buildWhen: (previous, current) =>
+                              previous.host != current.host,
+                          builder: (context, state) {
+                            return TextFormFieldValid(
+                              value: state.host,
                               hint: 'Host',
                               autocorrect: false,
                               onCheckText: (value) {
@@ -85,41 +97,45 @@ class _EpisodeEditBody extends StatelessWidget {
                                     ? state.error
                                     : null;
                               },
-                              onChanged: (value) {
-                                bloc.add(ChangeHostEpisodeEvent(value));
-                              },
-                            ),
-                          ],
+                              onChanged: (value) => context
+                                  .read<EpisodeEditBloc>()
+                                  .add(ChangeHostEpisodeEvent(value)),
+                            );
+                          },
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: BlocBuilder<EpisodeEditBloc, EpisodeEditState>(
-                    buildWhen: (previous, current) =>
-                        previous.status != current.status,
-                    builder: (context, state) {
-                      final isEnabled = state.status == StateStatus.valid;
-                      return ElevatedButton(
-                        onPressed: isEnabled
-                            ? () {
-                                context.read<EpisodeEditBloc>().add(
-                                  SaveEpisodeEvent(),
-                                );
-                              }
-                            : null,
-                        child: Text(isEdit ? 'Update' : 'Create'),
-                      );
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: BlocConsumer<EpisodeEditBloc, EpisodeEditState>(
+                listener: (context, state) {
+                  if (state.status == StateStatus.success) {
+                    context.pop(state.episode);
+                  }
+                },
+                buildWhen: (previous, current) =>
+                    previous.isValid != current.isValid,
+                builder: (context, state) {
+                  return ElevatedButton(
+                    onPressed: state.isValid
+                        ? () {
+                            context.read<EpisodeEditBloc>().add(
+                              SaveEpisodeEvent(),
+                            );
+                          }
+                        : null,
+                    child: Text(isEdit ? 'Update' : 'Create'),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
