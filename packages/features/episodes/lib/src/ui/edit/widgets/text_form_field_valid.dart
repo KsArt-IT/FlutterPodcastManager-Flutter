@@ -1,36 +1,71 @@
 import 'package:flutter/material.dart';
 
-class TextFormFieldValid extends StatelessWidget {
+class TextFormFieldValid extends StatefulWidget {
+  final String value;
   final String hint;
   final bool autocorrect;
-  final bool isDone;
   final String? Function(String?)? onCheckText;
   final Function(String) onChanged;
+
   const TextFormFieldValid({
     super.key,
+    required this.value,
     required this.hint,
     this.autocorrect = false,
-    this.isDone = false,
     this.onCheckText,
     required this.onChanged,
   });
 
   @override
+  State<TextFormFieldValid> createState() => _TextFormFieldValidState();
+}
+
+class _TextFormFieldValidState extends State<TextFormFieldValid> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value);
+  }
+
+  @override
+  void didUpdateWidget(covariant TextFormFieldValid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value && _controller.text != widget.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller.text = widget.value;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    debugPrint('TextFormFieldValid: ${widget.value}');
     return SizedBox(
       height: 80,
       child: TextFormField(
+        controller: _controller,
         decoration: InputDecoration(
-          hintText: hint,
+          hintText: widget.hint,
           filled: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          border: OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          border: const OutlineInputBorder(),
         ),
-        textInputAction: isDone ? TextInputAction.done : TextInputAction.next,
-        autocorrect: autocorrect,
-        validator: onCheckText,
+        textInputAction: TextInputAction.next,
+        autocorrect: widget.autocorrect,
+        validator: widget.onCheckText,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        onChanged: onChanged,
+        onChanged: widget.onChanged,
       ),
     );
   }
