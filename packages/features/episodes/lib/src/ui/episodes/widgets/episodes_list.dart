@@ -10,6 +10,7 @@ class EpisodesList extends StatelessWidget {
   final Function(String) onEdit;
   final Function(String) onDelete;
   final Function(String) onTap;
+  final Function(Episode) onGenerate;
 
   const EpisodesList({
     super.key,
@@ -18,6 +19,7 @@ class EpisodesList extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onTap,
+    required this.onGenerate,
   });
 
   @override
@@ -40,6 +42,7 @@ class EpisodesList extends StatelessWidget {
             onEdit: () => onEdit(item.id),
             onDelete: () => onDelete(item.id),
             onTap: () => onTap(item.id),
+            onGenerate: () => onGenerate(item),
           );
         },
       ),

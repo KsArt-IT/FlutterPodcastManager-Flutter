@@ -8,6 +8,7 @@ class DismissibleListTile extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onTap;
+  final VoidCallback onGenerate;
 
   const DismissibleListTile({
     super.key,
@@ -17,6 +18,7 @@ class DismissibleListTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onTap,
+    required this.onGenerate,
   });
 
   @override
@@ -69,6 +71,10 @@ class DismissibleListTile extends StatelessWidget {
       child: ListTile(
         title: Text(title),
         subtitle: Text(description),
+        trailing: OutlinedButton(
+          onPressed: onGenerate,
+          child: Text('Generate Alternative'),
+        ),
         onTap: onTap,
       ),
     );
