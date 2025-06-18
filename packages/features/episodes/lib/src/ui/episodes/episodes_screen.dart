@@ -2,6 +2,7 @@ import 'package:core_domain/domain.dart';
 import 'package:feature_episodes/episodes.dart';
 import 'package:feature_episodes/src/ui/episodes/widgets/episodes_list.dart';
 import 'package:feature_episodes/src/ui/episodes/widgets/episodes_retry.dart';
+import 'package:feature_episodes/src/ui/generate/generate_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,6 +60,14 @@ class _EpisodesBody extends StatelessWidget {
               // TODO: open host value
               Clipboard.setData(ClipboardData(text: value));
               _showSnackBar(context, 'Host copy to Clipboard!');
+            },
+            onGenerate: (value) async {
+              final episode = await showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => GenerateScreen(episode: value),
+              );
+              if (context.mounted) _updateAndShowSnackBar(context, episode);
             },
           ),
           EpisodesErrorState(:final message) => EpisodesRetry(message: message),
