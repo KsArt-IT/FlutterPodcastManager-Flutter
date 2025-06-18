@@ -17,7 +17,7 @@ abstract class PodcastApiService {
   @POST('/episodes')
   Future<EpisodeDto> createEpisode(@Body() EpisodeDto episode);
 
-  @PUT('/episodes/{id}')
+  @PATCH('/episodes/{id}')
   Future<EpisodeDto> updateEpisode(
     @Path('id') String id,
     @Body() EpisodeDto episode,

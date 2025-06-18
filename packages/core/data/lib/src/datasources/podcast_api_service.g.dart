@@ -111,7 +111,7 @@ class _PodcastApiService implements PodcastApiService {
     final _data = <String, dynamic>{};
     _data.addAll(episode.toJson());
     final _options = _setStreamType<EpisodeDto>(
-      Options(method: 'PUT', headers: _headers, extra: _extra)
+      Options(method: 'PATCH', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
             '/episodes/${id}',
