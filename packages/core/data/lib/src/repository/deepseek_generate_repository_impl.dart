@@ -1,10 +1,9 @@
-import 'package:core_data/src/datasources/deepseek/deepseek_api_service.dart';
+import 'package:core_data/data.dart';
 import 'package:core_domain/domain.dart';
-import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
 class DeepSeekGenerateRepositoryImpl implements LlmGenerateRepository {
-  final DeepSeekApiService service;
+  final ApiService<DeepSeekResponse> service;
   final String apiKey;
   final Logger _logger = Logger();
 
@@ -13,16 +12,17 @@ class DeepSeekGenerateRepositoryImpl implements LlmGenerateRepository {
   @override
   Future<Result<String>> generateText(String prompt) async {
     try {
-      print('LlmGenerateRepositoryImpl::key: $apiKey');
       final data = await service.generateText(
         apiKey: "Bearer $apiKey",
+        provider: "",
+        version: "",
         body: {
           "model": "deepseek-chat",
           "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt},
           ],
-          "temperature": 0.5,
+          "temperature": 1,
         },
       );
       final generatedText = data.choices.first.text;
