@@ -31,7 +31,7 @@ final class GenerateTextState extends Equatable {
       target: target ?? this.target,
       prompt: prompt ?? this.prompt,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error,
     );
   }
 
