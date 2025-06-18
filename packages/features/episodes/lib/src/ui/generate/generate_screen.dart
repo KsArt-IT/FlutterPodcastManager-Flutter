@@ -85,13 +85,19 @@ class _GenerateBodyState extends State<_GenerateBody> {
                   },
                 ),
                 const SizedBox(height: 8),
-                Text(_getLineFromEpisode(state.episode, state.target)),
+                Text(
+                  _getLineFromEpisode(state.episode, state.target),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   state.generatedEpisode != null
                       ? "Generated: ${_getLineFromEpisode(state.generatedEpisode, state.target)}"
                       : '',
                   style: TextStyle(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 12),
                 TextField(

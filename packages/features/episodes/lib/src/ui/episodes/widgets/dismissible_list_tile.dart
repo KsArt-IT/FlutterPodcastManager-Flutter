@@ -69,8 +69,17 @@ class DismissibleListTile extends StatelessWidget {
         }
       },
       child: ListTile(
-        title: Text(title),
-        subtitle: Text(description),
+        title: Text(
+          title,
+          style: TextStyle(fontWeight: FontWeight.bold),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          description,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: OutlinedButton(
           onPressed: onGenerate,
           child: Text('Generate Alternative'),
