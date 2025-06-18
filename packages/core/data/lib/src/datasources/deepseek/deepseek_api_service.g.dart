@@ -22,6 +22,8 @@ class _DeepSeekApiService implements DeepSeekApiService {
   @override
   Future<DeepSeekResponse> generateText({
     required String apiKey,
+    required String provider,
+    required String version,
     required Map<String, dynamic> body,
   }) async {
     final _extra = <String, dynamic>{};
