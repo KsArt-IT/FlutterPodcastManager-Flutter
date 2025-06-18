@@ -11,7 +11,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dio = Dio();
-    dio.options.headers["content-type"] = "application/json";
+    dio.options.headers["Content-Type"] = "application/json";
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<PodcastApiService>(
@@ -20,14 +20,32 @@ class App extends StatelessWidget {
         RepositoryProvider<PodcastRepository>(
           create: (context) => PodcastRepositoryImpl(service: context.read()),
         ),
-        RepositoryProvider<DeepSeekApiService>(
-          create: (_) => DeepSeekApiService(dio),
+        RepositoryProvider<ApiService>(
+          create: (_) {
+            if (dotenv.env['USE_KEY'] == 'DEESEEK_API_KEY') {
+              return DeepSeekApiService(dio) as ApiService<DeepSeekResponse>;
+            }
+            return HuggingFaceApiService(dio)
+                as ApiService<HuggingFaceResponse>;
+          },
         ),
         RepositoryProvider<LlmGenerateRepository>(
-          create: (context) => DeepSeekGenerateRepositoryImpl(
-            service: context.read(),
-            apiKey: dotenv.env['DEESEEK_API_KEY'] ?? '',
-          ),
+          create: (context) {
+            final ApiService service = context.read();
+            if (service is ApiService<DeepSeekResponse>) {
+              return DeepSeekGenerateRepositoryImpl(
+                service: service,
+                apiKey: dotenv.env['DEESEEK_API_KEY'] ?? '',
+              );
+            }
+            if (service is ApiService<HuggingFaceResponse>) {
+              return HuggingFaceGenerateRepositoryImpl(
+                service: service,
+                apiKey: dotenv.env['HUGGINGFACE_API_KEY'] ?? '',
+              );
+            }
+            throw Exception("Error: required service not available!");
+          },
         ),
         RepositoryProvider<FetchEpisodesUseCase>(
           create: (context) => FetchEpisodesUseCase(context.read()),
