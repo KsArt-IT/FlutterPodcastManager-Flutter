@@ -24,6 +24,9 @@ dependencies:
   # Domain
   core_domain:
     path: ../../core/domain
+  # Icons
+  core_icons:
+    path: ../../core/icons
 
 dev_dependencies:
   flutter_test:
