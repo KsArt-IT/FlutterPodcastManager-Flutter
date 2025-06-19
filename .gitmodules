@@ -1,0 +1,3 @@
+[submodule "packages/core/icons"]
+	path = packages/core/icons
+	url = https://github.com/KsArt-IT/CommonIcons-Flutter.git
