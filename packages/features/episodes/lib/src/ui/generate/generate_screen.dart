@@ -1,4 +1,5 @@
 import 'package:core_domain/domain.dart';
+import 'package:core_icons/icons.dart';
 import 'package:feature_episodes/src/ui/generate/bloc/generate_text_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,9 +60,23 @@ class _GenerateBodyState extends State<_GenerateBody> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  "Generate Alternative",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 36,
+                      width: 36,
+                      child: IconAssets.shared.huggingFace,
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      "Generate Alternative",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 SegmentedButton<EpisodeTarget>(
@@ -136,6 +151,7 @@ class _GenerateBodyState extends State<_GenerateBody> {
                                 child: const Text("Apply"),
                               ),
                             ),
+                            const SizedBox(width: 12),
                             Expanded(
                               flex: 2,
                               child: ElevatedButton(
