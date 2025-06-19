@@ -47,7 +47,6 @@ class _TextFormFieldValidState extends State<TextFormFieldValid> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('TextFormFieldValid: ${widget.value}');
     return SizedBox(
       height: 80,
       child: TextFormField(
