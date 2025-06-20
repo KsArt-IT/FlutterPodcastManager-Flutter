@@ -52,124 +52,118 @@ class _GenerateBodyState extends State<_GenerateBody> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.zero, //MediaQuery.of(context).viewInsets,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: BlocBuilder<GenerateTextBloc, GenerateTextState>(
-          builder: (context, state) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 36,
-                      width: 36,
-                      child: IconAssets.shared.huggingFace,
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      "Generate Alternative",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+      padding: const EdgeInsets.all(16),
+      child: BlocBuilder<GenerateTextBloc, GenerateTextState>(
+        builder: (context, state) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 36,
+                    width: 36,
+                    child: IconAssets.shared.huggingFace,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "Generate Alternative",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SegmentedButton<EpisodeTarget>(
+                segments: EpisodeTarget.values
+                    .map(
+                      (t) => ButtonSegment<EpisodeTarget>(
+                        value: t,
+                        label: SizedBox(
+                          width: 120,
+                          child: Center(child: Text(t.label)),
+                        ),
                       ),
-                    ),
-                  ],
+                    )
+                    .toList(),
+                selected: {state.target},
+                showSelectedIcon: false,
+                onSelectionChanged: (newSelection) {
+                  context.read<GenerateTextBloc>().add(
+                    SelectTargetEvent(newSelection.first),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _getLineFromEpisode(state.episode, state.target),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                state.generatedEpisode != null
+                    ? "Generated: ${_getLineFromEpisode(state.generatedEpisode, state.target)}"
+                    : '',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _promptController,
+                decoration: InputDecoration(
+                  labelText: "Prompt",
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  border: const OutlineInputBorder(),
+                  errorText: state.error,
                 ),
-                const SizedBox(height: 12),
-                SegmentedButton<EpisodeTarget>(
-                  segments: EpisodeTarget.values
-                      .map(
-                        (t) => ButtonSegment<EpisodeTarget>(
-                          value: t,
-                          label: SizedBox(
-                            width: 120,
-                            child: Center(child: Text(t.label)),
+                minLines: 4,
+                maxLines: 4,
+                textInputAction: TextInputAction.done,
+                onChanged: (value) => context.read<GenerateTextBloc>().add(
+                  ChangePromptEvent(value),
+                ),
+              ),
+              SizedBox(
+                height: 80,
+                child: state.isLoading
+                    ? Center(child: const CircularProgressIndicator())
+                    : Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: ElevatedButton(
+                              onPressed: state.generatedEpisode != null
+                                  ? () {
+                                      context.pop(state.generatedEpisode);
+                                    }
+                                  : null,
+                              child: const Text("Apply"),
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                  selected: {state.target},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (newSelection) {
-                    context.read<GenerateTextBloc>().add(
-                      SelectTargetEvent(newSelection.first),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _getLineFromEpisode(state.episode, state.target),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  state.generatedEpisode != null
-                      ? "Generated: ${_getLineFromEpisode(state.generatedEpisode, state.target)}"
-                      : '',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _promptController,
-                  decoration: InputDecoration(
-                    labelText: "Prompt",
-                    filled: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: const OutlineInputBorder(),
-                    errorText: state.error,
-                  ),
-                  minLines: 4,
-                  maxLines: 4,
-                  textInputAction: TextInputAction.done,
-                  onChanged: (value) => context.read<GenerateTextBloc>().add(
-                    ChangePromptEvent(value),
-                  ),
-                ),
-                SizedBox(
-                  height: 80,
-                  child: state.isLoading
-                      ? Center(child: const CircularProgressIndicator())
-                      : Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: ElevatedButton(
-                                onPressed: state.generatedEpisode != null
-                                    ? () {
-                                        context.pop(state.generatedEpisode);
-                                      }
-                                    : null,
-                                child: const Text("Apply"),
-                              ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              onPressed: state.prompt.isNotEmpty
+                                  ? () => context.read<GenerateTextBloc>().add(
+                                      GenerateStringEvent(),
+                                    )
+                                  : null,
+                              child: const Text("Generate"),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: state.prompt.isNotEmpty
-                                    ? () => context
-                                          .read<GenerateTextBloc>()
-                                          .add(GenerateStringEvent())
-                                    : null,
-                                child: const Text("Generate"),
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ],
-            );
-          },
-        ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
