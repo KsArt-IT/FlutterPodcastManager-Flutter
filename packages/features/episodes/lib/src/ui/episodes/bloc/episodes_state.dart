@@ -1,26 +1,39 @@
 part of 'episodes_bloc.dart';
 
-sealed class EpisodesState extends Equatable {
-  const EpisodesState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-final class EpisodesInitialState extends EpisodesState {}
-
-final class EpisodesErrorState extends EpisodesState {
-  final String message;
-  const EpisodesErrorState(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-final class EpisodesLoadedState extends EpisodesState {
+class EpisodesState extends Equatable {
   final List<Episode> episodes;
-  const EpisodesLoadedState(this.episodes);
+  final bool hasMore;
+  final bool isLoading;
+  final String isError;
+
+  const EpisodesState({
+    required this.episodes,
+    required this.hasMore,
+    required this.isLoading,
+    required this.isError,
+  });
+
+  factory EpisodesState.initial() => const EpisodesState(
+    episodes: [],
+    hasMore: true,
+    isLoading: false,
+    isError: '',
+  );
+
+  EpisodesState copyWith({
+    List<Episode>? episodes,
+    bool? hasMore,
+    bool? isLoading,
+    String? isError,
+  }) {
+    return EpisodesState(
+      episodes: episodes ?? this.episodes,
+      hasMore: hasMore ?? this.hasMore,
+      isLoading: isLoading ?? this.isLoading,
+      isError: isError ?? this.isError,
+    );
+  }
 
   @override
-  List<Object?> get props => [episodes];
+  List<Object?> get props => [episodes, hasMore, isLoading, isError];
 }
