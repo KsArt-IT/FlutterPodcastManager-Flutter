@@ -14,9 +14,17 @@ class PodcastRepositoryImpl implements PodcastRepository {
     : _apiService = service;
 
   @override
-  Future<Result<List<Episode>>> fetchEpisodes() {
+  Future<Result<List<Episode>>> fetchEpisodes({
+    required int page,
+    required int limit,
+  }) {
     return _fetchData<List<EpisodeDto>, List<Episode>>(
-      () => _apiService.fetchEpisodes(),
+      () => _apiService.fetchEpisodes(
+        page: page,
+        limit: limit,
+        sortBy: 'title',
+        //
+      ),
       mapper: (dtos) => dtos.map((e) => e.toDomain()).toList(),
       context: 'PodcastRepositoryImpl::fetchEpisodes',
     );

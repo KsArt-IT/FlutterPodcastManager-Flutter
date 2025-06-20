@@ -9,7 +9,11 @@ abstract class PodcastApiService {
   factory PodcastApiService(Dio dio, {String baseUrl}) = _PodcastApiService;
 
   @GET('/episodes')
-  Future<List<EpisodeDto>> fetchEpisodes();
+  Future<List<EpisodeDto>> fetchEpisodes({
+    @Query('page') required int page,
+    @Query('limit') required int limit,
+    @Query('sortBy') required String sortBy,
+  });
 
   @GET('/episodes/{id}')
   Future<EpisodeDto> fetchEpisode(@Path('id') String id);
