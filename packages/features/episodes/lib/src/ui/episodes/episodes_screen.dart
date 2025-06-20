@@ -57,7 +57,7 @@ class _EpisodesBodyState extends State<_EpisodesBody> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Episodes")),
+      appBar: AppBar(title: Text("Podcast Manager")),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         key: const Key('episodes_add_floatingActionButton'),
@@ -97,6 +97,7 @@ class _EpisodesBodyState extends State<_EpisodesBody> {
                     id: episode.id,
                     title: episode.title,
                     description: episode.description,
+                    host: episode.host,
                     onEdit: () async {
                       final newEpisode = await context.pushNamed(
                         'edit',
@@ -110,7 +111,6 @@ class _EpisodesBodyState extends State<_EpisodesBody> {
                       DeleteEpisodeEvent(episode.id),
                     ),
                     onTap: () {
-                      // TODO: open host value
                       Clipboard.setData(ClipboardData(text: episode.host));
                       _showSnackBar(context, 'Host copy to Clipboard!');
                     },
