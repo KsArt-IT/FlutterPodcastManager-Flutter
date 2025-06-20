@@ -52,7 +52,7 @@ class _TextFormFieldValidState extends State<TextFormFieldValid> {
       child: TextFormField(
         controller: _controller,
         decoration: InputDecoration(
-          hintText: widget.hint,
+          labelText: widget.hint,
           filled: true,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
