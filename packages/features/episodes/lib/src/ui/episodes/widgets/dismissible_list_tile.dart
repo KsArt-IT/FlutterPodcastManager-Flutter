@@ -1,3 +1,4 @@
+import 'package:core_icons/icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,13 +31,21 @@ class DismissibleListTile extends StatelessWidget {
         color: Colors.blueAccent,
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: const Icon(Icons.edit, color: Colors.white70),
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: IconAssets.shared.editToolsGreen,
+        ),
       ),
       secondaryBackground: Container(
         color: Colors.redAccent,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: const Icon(Icons.delete, color: Colors.white70),
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: IconAssets.shared.deleteGreen,
+        ),
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
