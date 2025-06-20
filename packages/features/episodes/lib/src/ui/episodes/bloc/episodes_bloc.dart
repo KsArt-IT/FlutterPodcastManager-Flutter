@@ -11,12 +11,15 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
   final FetchEpisodesUseCase _fetchEpisodesUseCase;
   final DeleteEpisodeUseCase _deleteEpisodeUseCase;
 
+  int _page = 1;
+  final int _limit = 20;
+
   EpisodesBloc({
     required FetchEpisodesUseCase fetchEpisodes,
     required DeleteEpisodeUseCase deleteEpisode,
   }) : _fetchEpisodesUseCase = fetchEpisodes,
        _deleteEpisodeUseCase = deleteEpisode,
-       super(EpisodesInitialState()) {
+       super(EpisodesState.initial()) {
     on<FetchEpisodesEvent>(_onFetchEpisodesEvent);
     on<RefreshEpisodesEvent>(_onRefreshEpisodesEvent);
     on<CreatedEpisodeEvent>(_onCreatedEpisodeEvent);
@@ -28,12 +31,22 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
     FetchEpisodesEvent event,
     Emitter<EpisodesState> emit,
   ) async {
-    final result = await _fetchEpisodesUseCase();
+    if (state.isLoading || !state.hasMore) return;
+    emit(state.copyWith(isLoading: true, isError: ''));
+
+    final result = await _fetchEpisodesUseCase(page: _page, limit: _limit);
     switch (result) {
       case Success(:final value):
-        emit(EpisodesLoadedState(value));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            episodes: [...state.episodes, ...value],
+            hasMore: value.length == _limit,
+          ),
+        );
+        _page++;
       case Failure(:final error):
-        emit(EpisodesErrorState(error.toString()));
+        emit(state.copyWith(isLoading: false, isError: error.toString()));
     }
   }
 
@@ -41,13 +54,23 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
     RefreshEpisodesEvent event,
     Emitter<EpisodesState> emit,
   ) async {
-    final result = await _fetchEpisodesUseCase();
+    _page = 1;
+    emit(state.copyWith(isLoading: true, isError: ''));
+
+    final result = await _fetchEpisodesUseCase(page: _page, limit: _limit);
     event.completer.complete();
     switch (result) {
       case Success(:final value):
-        emit(EpisodesLoadedState(value));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            episodes: value,
+            hasMore: value.length == _limit,
+          ),
+        );
+        _page++;
       case Failure(:final error):
-        emit(EpisodesErrorState(error.toString()));
+        emit(state.copyWith(isLoading: false, isError: error.toString()));
     }
   }
 
@@ -55,46 +78,49 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
     CreatedEpisodeEvent event,
     Emitter<EpisodesState> emit,
   ) async {
-    if (state is EpisodesLoadedState) {
-      emit(
-        EpisodesLoadedState(
-          (state as EpisodesLoadedState).episodes + [event.episode],
-        ),
-      );
-    }
+    if (state.isLoading) return;
+
+    emit(
+      state.copyWith(
+        isLoading: false,
+        episodes: [...state.episodes, event.episode],
+        isError: '',
+      ),
+    );
   }
 
   void _onUpdatedEpisodeEvent(
     UpdatedEpisodeEvent event,
     Emitter<EpisodesState> emit,
   ) async {
-    if (state is EpisodesLoadedState) {
-      List<Episode> list = List.from((state as EpisodesLoadedState).episodes);
-      final index = list.indexWhere((e) => e.id == event.episode.id);
-      list[index] = event.episode;
-      emit(EpisodesLoadedState(list));
-    }
+    if (state.isLoading) return;
+
+    List<Episode> list = List.from(state.episodes);
+    final index = list.indexWhere((e) => e.id == event.episode.id);
+    list[index] = event.episode;
+    emit(state.copyWith(isLoading: false, episodes: [...list], isError: ''));
   }
 
   void _onDeleteEpisodeEvent(
     DeleteEpisodeEvent event,
     Emitter<EpisodesState> emit,
   ) async {
-    if (event.episodeId.isEmpty) return;
-    if (state is EpisodesLoadedState) {
-      final result = await _deleteEpisodeUseCase(event.episodeId);
-      switch (result) {
-        case Success():
-          emit(
-            EpisodesLoadedState(
-              (state as EpisodesLoadedState).episodes
-                  .where((e) => e.id != event.episodeId)
-                  .toList(),
-            ),
-          );
-        case Failure(:final error):
-          emit(EpisodesErrorState(error.toString()));
-      }
+    if (event.episodeId.isEmpty || state.isLoading) return;
+    emit(state.copyWith(isLoading: true, isError: ''));
+
+    final result = await _deleteEpisodeUseCase(event.episodeId);
+    switch (result) {
+      case Success():
+        emit(
+          state.copyWith(
+            isLoading: false,
+            episodes: state.episodes
+                .where((e) => e.id != event.episodeId)
+                .toList(),
+          ),
+        );
+      case Failure(:final error):
+        emit(state.copyWith(isLoading: false, isError: error.toString()));
     }
   }
 }
