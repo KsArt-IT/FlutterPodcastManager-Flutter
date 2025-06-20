@@ -5,7 +5,10 @@ class FetchEpisodesUseCase {
 
   const FetchEpisodesUseCase(this._repository);
 
-  Future<Result<List<Episode>>> call() async {
-    return await _repository.fetchEpisodes();
+  Future<Result<List<Episode>>> call({
+    required int page,
+    required int limit,
+  }) async {
+    return await _repository.fetchEpisodes(page: page, limit: limit);
   }
 }
