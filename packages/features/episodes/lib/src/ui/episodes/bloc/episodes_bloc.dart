@@ -40,7 +40,7 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
         emit(
           state.copyWith(
             isLoading: false,
-            episodes: [...state.episodes, ...value],
+            episodes: _mergeEpisodesUniqueById(state.episodes, value),
             hasMore: value.length == _limit,
           ),
         );
@@ -48,6 +48,17 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
       case Failure(:final error):
         emit(state.copyWith(isLoading: false, isError: error.toString()));
     }
+  }
+
+  List<Episode> _mergeEpisodesUniqueById(
+    List<Episode> oldEpisodes,
+    List<Episode> newEpisodes,
+  ) {
+    final all = [...oldEpisodes, ...newEpisodes];
+
+    final Map<String, Episode> uniqueById = {for (var e in all) e.id: e};
+
+    return uniqueById.values.toList();
   }
 
   void _onRefreshEpisodesEvent(
@@ -98,15 +109,14 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
     List<Episode> list = List.from(state.episodes);
     final index = list.indexWhere((e) => e.id == event.episode.id);
     list[index] = event.episode;
-    emit(state.copyWith(isLoading: false, episodes: [...list], isError: ''));
+    emit(state.copyWith(isLoading: false, episodes: list, isError: ''));
   }
 
   void _onDeleteEpisodeEvent(
     DeleteEpisodeEvent event,
     Emitter<EpisodesState> emit,
   ) async {
-    if (event.episodeId.isEmpty || state.isLoading) return;
-    emit(state.copyWith(isLoading: true, isError: ''));
+    if (event.episodeId.isEmpty) return;
 
     final result = await _deleteEpisodeUseCase(event.episodeId);
     switch (result) {
@@ -117,6 +127,7 @@ class EpisodesBloc extends Bloc<EpisodesEvent, EpisodesState> {
             episodes: state.episodes
                 .where((e) => e.id != event.episodeId)
                 .toList(),
+            isError: '',
           ),
         );
       case Failure(:final error):
