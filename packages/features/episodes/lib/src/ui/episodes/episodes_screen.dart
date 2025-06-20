@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:core_domain/domain.dart';
 import 'package:feature_episodes/episodes.dart';
-import 'package:feature_episodes/src/ui/episodes/widgets/episodes_list.dart';
+import 'package:feature_episodes/src/ui/episodes/widgets/dismissible_list_tile.dart';
 import 'package:feature_episodes/src/ui/episodes/widgets/episodes_retry.dart';
 import 'package:feature_episodes/src/ui/generate/generate_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,14 +19,40 @@ class EpisodesScreen extends StatelessWidget {
       create: (context) => EpisodesBloc(
         fetchEpisodes: context.read(),
         deleteEpisode: context.read(),
-      )..add(FetchEpisodesEvent()),
+      ),
       child: _EpisodesBody(),
     );
   }
 }
 
-class _EpisodesBody extends StatelessWidget {
+class _EpisodesBody extends StatefulWidget {
   const _EpisodesBody({super.key});
+
+  @override
+  State<_EpisodesBody> createState() => _EpisodesBodyState();
+}
+
+class _EpisodesBodyState extends State<_EpisodesBody> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<EpisodesBloc>().add(FetchEpisodesEvent());
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        context.read<EpisodesBloc>().add(FetchEpisodesEvent());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,36 +70,75 @@ class _EpisodesBody extends StatelessWidget {
         child: const Icon(Icons.add),
       ),
       body: BlocBuilder<EpisodesBloc, EpisodesState>(
-        builder: (context, state) => switch (state) {
-          EpisodesLoadedState(:final episodes) => EpisodesList(
-            list: episodes,
-            onRefresh: (value) =>
-                context.read<EpisodesBloc>().add(RefreshEpisodesEvent(value)),
-            onEdit: (value) async {
-              final episode = await context.pushNamed(
-                'edit',
-                pathParameters: {'episodeId': value},
-              );
-              if (context.mounted) _updateAndShowSnackBar(context, episode);
+        builder: (context, state) {
+          if (state.episodes.isEmpty) {
+            if (state.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (state.isError.isNotEmpty) {
+              return EpisodesRetry(message: state.isError);
+            }
+            return Center(child: Text('Episode list is empty'));
+          }
+          return RefreshIndicator(
+            onRefresh: () {
+              final completer = Completer<void>();
+              context.read<EpisodesBloc>().add(RefreshEpisodesEvent(completer));
+              return completer.future;
             },
-            onDelete: (value) =>
-                context.read<EpisodesBloc>().add(DeleteEpisodeEvent(value)),
-            onTap: (value) {
-              // TODO: open host value
-              Clipboard.setData(ClipboardData(text: value));
-              _showSnackBar(context, 'Host copy to Clipboard!');
-            },
-            onGenerate: (value) async {
-              final episode = await showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => GenerateScreen(episode: value),
-              );
-              if (context.mounted) _updateAndShowSnackBar(context, episode);
-            },
-          ),
-          EpisodesErrorState(:final message) => EpisodesRetry(message: message),
-          EpisodesInitialState() => Center(child: CircularProgressIndicator()),
+            child: ListView.separated(
+              controller: _scrollController,
+              padding: const EdgeInsets.only(bottom: 100),
+              itemCount: state.episodes.length + (state.hasMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index < state.episodes.length) {
+                  final episode = state.episodes[index];
+                  return DismissibleListTile(
+                    id: episode.id,
+                    title: episode.title,
+                    description: episode.description,
+                    onEdit: () async {
+                      final newEpisode = await context.pushNamed(
+                        'edit',
+                        pathParameters: {'episodeId': episode.id},
+                      );
+                      if (context.mounted) {
+                        _updateAndShowSnackBar(context, newEpisode);
+                      }
+                    },
+                    onDelete: () => context.read<EpisodesBloc>().add(
+                      DeleteEpisodeEvent(episode.id),
+                    ),
+                    onTap: () {
+                      // TODO: open host value
+                      Clipboard.setData(ClipboardData(text: episode.host));
+                      _showSnackBar(context, 'Host copy to Clipboard!');
+                    },
+                    onGenerate: () async {
+                      final newEpisode = await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => GenerateScreen(episode: episode),
+                      );
+                      if (context.mounted) {
+                        _updateAndShowSnackBar(context, newEpisode);
+                      }
+                    },
+                  );
+                } else {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Center(
+                      child: state.isError.isEmpty
+                          ? const CircularProgressIndicator()
+                          : EpisodesRetry(message: state.isError),
+                    ),
+                  );
+                }
+              },
+              separatorBuilder: (context, index) => Divider(),
+            ),
+          );
         },
       ),
     );
