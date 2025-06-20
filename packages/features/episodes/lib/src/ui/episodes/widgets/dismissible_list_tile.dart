@@ -1,4 +1,5 @@
 import 'package:core_icons/icons.dart';
+import 'package:feature_episodes/src/ui/episodes/widgets/InkWell_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +7,7 @@ class DismissibleListTile extends StatelessWidget {
   final String id;
   final String title;
   final String description;
+  final String host;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onTap;
@@ -16,6 +18,7 @@ class DismissibleListTile extends StatelessWidget {
     required this.id,
     required this.title,
     required this.description,
+    required this.host,
     required this.onEdit,
     required this.onDelete,
     required this.onTap,
@@ -77,22 +80,11 @@ class DismissibleListTile extends StatelessWidget {
           onDelete();
         }
       },
-      child: ListTile(
-        title: Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.bold),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          description,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: OutlinedButton(
-          onPressed: onGenerate,
-          child: Text('Generate Alternative'),
-        ),
+      child: InkWellListTile(
+        title: title,
+        description: description,
+        host: host,
+        onGenerate: onGenerate,
         onTap: onTap,
       ),
     );
