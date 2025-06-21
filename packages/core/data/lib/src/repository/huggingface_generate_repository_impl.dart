@@ -21,7 +21,11 @@ class HuggingFaceGenerateRepositoryImpl implements LlmGenerateRepository {
         version: "v1",
         body: {
           "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
+            {
+              "role": "system",
+              "content":
+                  "You are a helpful assistant who speaks briefly, clearly and to the point, without discussion in response. Please give me just one sentence.",
+            },
             {"role": "user", "content": prompt},
           ],
           "model": "google/gemma-2-2b-it",
