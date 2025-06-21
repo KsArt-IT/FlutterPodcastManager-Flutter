@@ -7,15 +7,20 @@ part 'generate_text_state.dart';
 
 class GenerateTextBloc extends Bloc<GenerateTextEvent, GenerateTextState> {
   final GenerateEpisodeUseCase _generateText;
+  final UpdateEpisodeUseCase _updateEpisodeUseCase;
 
   GenerateTextBloc({
     required GenerateEpisodeUseCase generateText,
+    required UpdateEpisodeUseCase updateEpisodes,
     required Episode episode,
   }) : _generateText = generateText,
+       _updateEpisodeUseCase = updateEpisodes,
        super(GenerateTextState(episode: episode)) {
     on<SelectTargetEvent>(_onSelectTargetEvent);
     on<ChangePromptEvent>(_onChangePromptEvent);
+    on<ChangeTextEvent>(_onChangeTextEvent);
     on<GenerateStringEvent>(_onGenerateTextEvent);
+    on<ApplyEpisodeEvent>(_onApplyEpisodeEvent);
   }
 
   void _onChangePromptEvent(
@@ -23,6 +28,24 @@ class GenerateTextBloc extends Bloc<GenerateTextEvent, GenerateTextState> {
     Emitter<GenerateTextState> emit,
   ) {
     emit(state.copyWith(prompt: event.prompt, error: null));
+  }
+
+  void _onChangeTextEvent(
+    ChangeTextEvent event,
+    Emitter<GenerateTextState> emit,
+  ) {
+    if (state.generatedEpisode == null) return;
+
+    emit(
+      state.copyWith(
+        generatedEpisode: _getEpisodeByTarget(
+          state.generatedEpisode!,
+          event.text,
+        ),
+        isLoading: false,
+        error: null,
+      ),
+    );
   }
 
   void _onSelectTargetEvent(
@@ -37,26 +60,52 @@ class GenerateTextBloc extends Bloc<GenerateTextEvent, GenerateTextState> {
     Emitter<GenerateTextState> emit,
   ) async {
     emit(state.copyWith(isLoading: true, error: null));
-    String prompt = switch (state.target) {
-      EpisodeTarget.title => state.episode.title,
-      EpisodeTarget.description => state.episode.description,
-    };
-    prompt = '"$prompt" ${state.prompt}';
-    final result = await _generateText(prompt);
 
+    final result = await _generateText(state.prompt);
     switch (result) {
       case Success(:final value):
-        final episode = state.generatedEpisode ?? state.episode;
-        final generatedEpisode = switch (state.target) {
-          EpisodeTarget.title => episode.copyWith(title: value),
-          EpisodeTarget.description => episode.copyWith(description: value),
-        };
         emit(
-          state.copyWith(generatedEpisode: generatedEpisode, isLoading: false),
+          state.copyWith(
+            generatedEpisode: _getEpisodeByTarget(
+              state.generatedEpisode ?? state.episode,
+              _cleanText(value),
+            ),
+            isLoading: false,
+          ),
         );
+      case Failure(:AppFailure error):
+        emit(state.copyWith(isLoading: false, error: error.message));
       case Failure(:final error):
-        final appFailure = error as AppFailure;
-        emit(state.copyWith(isLoading: false, error: appFailure.message));
+        emit(state.copyWith(isLoading: false, error: error.toString()));
     }
+  }
+
+  void _onApplyEpisodeEvent(
+    ApplyEpisodeEvent event,
+    Emitter<GenerateTextState> emit,
+  ) async {
+    if (state.generatedEpisode == null) return;
+    emit(state.copyWith(isLoading: true, error: null));
+
+    final result = await _updateEpisodeUseCase(state.generatedEpisode!);
+    switch (result) {
+      case Success(:final value):
+        emit(state.copyWith(generatedEpisode: value, isSuccess: true));
+      case Failure(:AppFailure error):
+        emit(state.copyWith(isLoading: false, error: error.message));
+      case Failure(:final error):
+        emit(state.copyWith(isLoading: false, error: error.toString()));
+    }
+  }
+
+  Episode _getEpisodeByTarget(Episode episode, String text) {
+    return switch (state.target) {
+      EpisodeTarget.title => episode.copyWith(title: text),
+      EpisodeTarget.description => episode.copyWith(description: text),
+    };
+  }
+
+  String _cleanText(String text) {
+    return text.replaceAll(RegExp(r"""^[\s'"“”‘’]+|[\s'"“”‘’․․..]+$"""), '');
   }
 }
