@@ -46,7 +46,9 @@ class _EpisodeEditBody extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey[300],
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHigh,
                       ),
                       child: Form(
                         child: Column(
