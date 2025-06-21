@@ -6,6 +6,7 @@ final class GenerateTextState extends Equatable {
   final EpisodeTarget target;
   final String prompt;
   final bool isLoading;
+  final bool isSuccess;
   final String? error;
 
   const GenerateTextState({
@@ -14,6 +15,7 @@ final class GenerateTextState extends Equatable {
     this.target = EpisodeTarget.title,
     this.prompt = '',
     this.isLoading = false,
+    this.isSuccess = false,
     this.error,
   });
 
@@ -23,6 +25,7 @@ final class GenerateTextState extends Equatable {
     EpisodeTarget? target,
     String? prompt,
     bool? isLoading,
+    bool? isSuccess,
     String? error,
   }) {
     return GenerateTextState(
@@ -31,6 +34,7 @@ final class GenerateTextState extends Equatable {
       target: target ?? this.target,
       prompt: prompt ?? this.prompt,
       isLoading: isLoading ?? this.isLoading,
+      isSuccess: isSuccess ?? this.isSuccess,
       error: error,
     );
   }
@@ -42,6 +46,7 @@ final class GenerateTextState extends Equatable {
     target,
     prompt,
     isLoading,
+    isSuccess,
     error,
   ];
 }
